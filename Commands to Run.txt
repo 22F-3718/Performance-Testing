@@ -1,0 +1,5 @@
+k6 run --summary-export=result.json PerformanceTests.js
+
+python -m http.server 8000
+
+http://localhost:8000/Results.html

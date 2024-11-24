@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K6 Test Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .pass {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .fail {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .summary-table th {
+            background-color: #0275d8;
+            color: white;
+        }
+
+        .summary-table td {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>K6 Test Report</h1>
+
+    <h2>Summary</h2>
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody id="summaryMetrics"></tbody>
+    </table>
+
+    <h2>Checks</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Check Name</th>
+                <th>Passes</th>
+                <th>Fails</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="checkResults"></tbody>
+    </table>
+
+    <h2>Detailed Metrics</h2>
+    <pre id="jsonRawOutput"></pre>
+
+    <script>
+        // Load the JSON file
+        fetch('result.json')
+            .then(response => response.json())
+            .then(data => {
+                // Populate the Summary Metrics Table
+                const summaryMetrics = data.metrics;
+                const summaryTable = document.getElementById('summaryMetrics');
+                Object.keys(summaryMetrics).forEach(metric => {
+                    const row = document.createElement('tr');
+                    const metricData = summaryMetrics[metric];
+                    row.innerHTML = `
+                        <td>${metric}</td>
+                        <td>${metricData.value !== undefined ? metricData.value : JSON.stringify(metricData)}</td>
+                    `;
+                    summaryTable.appendChild(row);
+                });
+
+                // Populate the Checks Table
+                const checks = data.root_group.checks;
+                const checkResultsTable = document.getElementById('checkResults');
+                Object.keys(checks).forEach(checkKey => {
+                    const check = checks[checkKey];
+                    const statusClass = check.fails === 0 ? 'pass' : 'fail';
+                    const statusText = check.fails === 0 ? 'PASS' : 'FAIL';
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${check.name}</td>
+                        <td>${check.passes}</td>
+                        <td>${check.fails}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    `;
+                    checkResultsTable.appendChild(row);
+                });
+
+                // Populate Detailed Metrics (Raw JSON)
+                document.getElementById('jsonRawOutput').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => console.error('Error loading JSON:', error));
+    </script>
+</body>
+
+</html>
